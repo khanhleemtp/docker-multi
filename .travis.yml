@@ -7,4 +7,20 @@ services:
   - docker
 
 before_install:
-  - docker build -t khanhleemtp/react-test -f ./client/Dockerfile.dev
+  - docker build -t khanhleemtp/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run khanhleemtp/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t khanhleemtp/multi-client ./client
+  - docker build -t khanhleemtp/multi-nginx ./nginx
+  - docker build -t khanhleemtp/multi-server ./server
+  - docker build -t khanhleemtp/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push khanhleemtp/multi-client
+  - docker push khanhleemtp/multi-nginx
+  - docker push khanhleemtp/multi-server
+  - docker push khanhleemtp/multi-worker
